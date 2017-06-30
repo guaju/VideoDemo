@@ -61,15 +61,6 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
                 }
             }
         };
-        task = new TimerTask() {
-            @Override
-            public void run() {
-                video_progress=vv.getCurrentPosition();
-                if (duration!=0){
-                    seekBar.setProgress(video_progress);
-                }
-            }
-        };
 
     }
 
@@ -117,14 +108,24 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
                     vv.seekTo(0);
                     }
                     vv.start();
+
                     timer = new Timer();
-                    timer.schedule(task,0,100);
+                    timer.schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            video_progress=vv.getCurrentPosition();
+                            if (duration!=0){
+                                seekBar.setProgress(video_progress);
+                            }
+                        }
+                    },0,100);
                     playing_status=PlayStatus.START;
                 }
                 break;
             case R.id.bt_stop:
                 if ((vv!=null)&&file.exists()&&vv.canPause()){
-                    timer.cancel();
+                    timer.purge();
+                    timer=null;
                     seekBar.setProgress(0);
                     vv.pause();
                     playing_status=PlayStatus.STOP;
@@ -134,7 +135,8 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
                 break;
             case R.id.bt_pause:
                 if ((vv!=null)&&file.exists()&&vv.canPause()){
-                    timer.cancel();
+                    timer.purge();
+                    timer=null;
                     vv.pause();
                     playing_status=PlayStatus.PAUSE;
                 }
