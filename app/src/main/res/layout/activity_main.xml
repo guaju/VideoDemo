@@ -7,6 +7,7 @@
     android:orientation="vertical"
     android:gravity="center_horizontal"
     tools:context="com.guaju.videodemo.MainActivity">
+
     <VideoView
         android:id="@+id/videoview"
         android:layout_width="match_parent"
@@ -23,7 +24,7 @@
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:layout_margin="50dp"
-
+        android:visibility="gone"
         />
     <LinearLayout
         android:layout_width="match_parent"
@@ -49,7 +50,6 @@
             android:layout_height="wrap_content"
             android:text="pause"
             />
-
     </LinearLayout>
 
 </LinearLayout>

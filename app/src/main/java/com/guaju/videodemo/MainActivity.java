@@ -80,7 +80,12 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                video_progress = vv.getCurrentPosition();
+                if (fromUser){
+                    vv.seekTo(progress);
+                    startVideo(progress);
+                }
+
+
                 //
             }
 
@@ -103,29 +108,15 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
                 duration=vv.getDuration();
                 seekBar.setMax(duration);
                 Toast.makeText(this, "duration="+duration, Toast.LENGTH_SHORT).show();
-                if ((vv!=null)&&(file.exists())&&(PlayStatus.START!=playing_status)){
-                    if (playing_status==PlayStatus.STOP){
-                    vv.seekTo(0);
-                    }
-                    vv.start();
-
-                    timer = new Timer();
-                    timer.schedule(new TimerTask() {
-                        @Override
-                        public void run() {
-                            video_progress=vv.getCurrentPosition();
-                            if (duration!=0){
-                                seekBar.setProgress(video_progress);
-                            }
-                        }
-                    },0,100);
-                    playing_status=PlayStatus.START;
-                }
+                startVideo(0);
+                seekBar.setVisibility(View.VISIBLE);
                 break;
             case R.id.bt_stop:
                 if ((vv!=null)&&file.exists()&&vv.canPause()){
+                    if(timer!=null){
                     timer.purge();
                     timer=null;
+                    }
                     seekBar.setProgress(0);
                     vv.pause();
                     playing_status=PlayStatus.STOP;
@@ -135,12 +126,41 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
                 break;
             case R.id.bt_pause:
                 if ((vv!=null)&&file.exists()&&vv.canPause()){
+                    if(timer!=null){
                     timer.purge();
                     timer=null;
+                    }
                     vv.pause();
                     playing_status=PlayStatus.PAUSE;
                 }
                 break;
+        }
+    }
+
+    private void startVideo(int position) {
+        if ((vv!=null)&&(file.exists())&&(PlayStatus.START!=playing_status)){
+            if (playing_status==PlayStatus.STOP){
+                vv.seekTo(0);
+            }
+            if(position==0){
+            vv.start();
+            }else{
+                vv.seekTo(position);
+                vv.start();
+            }
+
+
+            timer = new Timer();
+            timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    video_progress=vv.getCurrentPosition();
+                    if (duration!=0){
+                        seekBar.setProgress(video_progress);
+                    }
+                }
+            },0,100);
+            playing_status=PlayStatus.START;
         }
     }
 
