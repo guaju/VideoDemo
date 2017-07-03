@@ -4,8 +4,10 @@ import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.SeekBar;
 import android.widget.Toast;
 import android.widget.VideoView;
@@ -16,7 +18,6 @@ import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity  implements View.OnClickListener
 {
-
     private VideoView vv;
     private Button start,stop,pause;
     private File file;
@@ -27,6 +28,11 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
     private Runnable runnable;
     private TimerTask task;
     private Timer timer;
+    private FrameLayout left,right;
+    float oldLeftY=0;
+    float oldRightY=0;
+    int dp=50;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +76,9 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
         stop = (Button) findViewById(R.id.bt_stop);
         pause = (Button) findViewById(R.id.bt_pause);
         seekBar = (SeekBar) findViewById(R.id.seekbar);
+        left= (FrameLayout) findViewById(R.id.left);
+        right= (FrameLayout) findViewById(R.id.right);
+
         initEvent();
     }
 
@@ -97,6 +106,66 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
 
+            }
+        });
+
+
+        left.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction()==MotionEvent.ACTION_DOWN){
+                if (oldLeftY==0){
+                    oldLeftY=event.getRawY();
+                }
+                }
+                if (event.getAction()==MotionEvent.ACTION_MOVE){
+                    float newLeftY=event.getRawY();
+                    float degree = newLeftY - oldLeftY;
+                    float abs = Math.abs(degree);
+                    if (newLeftY - oldLeftY>0){
+                         ToastUtils.show(MainActivity.this,"downdown");
+                         if (abs>=4*dp){
+                             //四个
+                             ToastUtils.show(MainActivity.this,"sige");
+                         }else if (abs>=3*dp){
+                             ToastUtils.show(MainActivity.this,"sange");
+
+                         }else if (abs>=2*dp){
+                             ToastUtils.show(MainActivity.this,"liangge");
+                         }
+                         else if (abs>=1*dp){
+                             ToastUtils.show(MainActivity.this,"yige");;
+
+                         }
+                         else{
+                             Toast.makeText(MainActivity.this, "cancle", Toast.LENGTH_SHORT).show();
+                         }
+
+
+                     }else{
+                         ToastUtils.show(MainActivity.this,"upup");
+                        if (abs>=4*dp){
+                            //四个
+                        }else if (abs>=3*dp){
+
+                        }else if (abs>=2*dp){
+
+                        }
+                        else if (abs>=1*dp){
+
+                        }
+                        else{
+
+                        }
+
+                    }
+                }
+                if(event.getAction()==MotionEvent.ACTION_UP){
+                    oldLeftY=0;
+                }
+
+
+                return true;
             }
         });
     }
