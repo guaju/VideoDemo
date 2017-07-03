@@ -3,6 +3,7 @@ package com.guaju.videodemo;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -32,6 +33,7 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
     float oldLeftY=0;
     float oldRightY=0;
     int dp=50;
+    int volume=0;
 
 
     @Override
@@ -89,7 +91,7 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (fromUser){
+                if (fromUser) {
                     vv.seekTo(progress);
                     startVideo(progress);
                 }
@@ -108,67 +110,18 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
 
             }
         });
+        try {
+            BrightNessUtils.setLightManual(this);
+        } catch (Settings.SettingNotFoundException e) {
+            e.printStackTrace();
+        }
+        initBrightMananger();
+        initVolumeManager();
 
 
-        left.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                if (event.getAction()==MotionEvent.ACTION_DOWN){
-                if (oldLeftY==0){
-                    oldLeftY=event.getRawY();
-                }
-                }
-                if (event.getAction()==MotionEvent.ACTION_MOVE){
-                    float newLeftY=event.getRawY();
-                    float degree = newLeftY - oldLeftY;
-                    float abs = Math.abs(degree);
-                    if (newLeftY - oldLeftY>0){
-                         ToastUtils.show(MainActivity.this,"downdown");
-                         if (abs>=4*dp){
-                             //四个
-                             ToastUtils.show(MainActivity.this,"sige");
-                         }else if (abs>=3*dp){
-                             ToastUtils.show(MainActivity.this,"sange");
-
-                         }else if (abs>=2*dp){
-                             ToastUtils.show(MainActivity.this,"liangge");
-                         }
-                         else if (abs>=1*dp){
-                             ToastUtils.show(MainActivity.this,"yige");;
-
-                         }
-                         else{
-                             Toast.makeText(MainActivity.this, "cancle", Toast.LENGTH_SHORT).show();
-                         }
-
-
-                     }else{
-                         ToastUtils.show(MainActivity.this,"upup");
-                        if (abs>=4*dp){
-                            //四个
-                        }else if (abs>=3*dp){
-
-                        }else if (abs>=2*dp){
-
-                        }
-                        else if (abs>=1*dp){
-
-                        }
-                        else{
-
-                        }
-
-                    }
-                }
-                if(event.getAction()==MotionEvent.ACTION_UP){
-                    oldLeftY=0;
-                }
-
-
-                return true;
-            }
-        });
     }
+
+   
 
     @Override
     public void onClick(View v) {
@@ -233,8 +186,161 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
         }
     }
 
-    public enum PlayStatus{
-        STOP,PAUSE,START;
+
+
+
+    private void initBrightMananger() {
+        left.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction()==MotionEvent.ACTION_DOWN){
+                    if (oldLeftY==0){
+                        oldLeftY=event.getRawY();
+                    }
+                }
+                if (event.getAction()==MotionEvent.ACTION_MOVE){
+                    float newLeftY=event.getRawY();
+                    float degree = newLeftY - oldLeftY;
+                    float abs = Math.abs(degree);
+                    int brightNess = BrightNessUtils.getBrightNess(MainActivity.this);
+                    if (newLeftY - oldLeftY>0){
+                        ToastUtils.show(MainActivity.this,"downdown");
+                        if (abs>=4*dp){
+                            //四个
+                            brightNess-=240;
+                            ToastUtils.show(MainActivity.this,"sige");
+                        }else if (abs>=3*dp){
+                            brightNess-=180;
+                            ToastUtils.show(MainActivity.this,"sange");
+
+                        }else if (abs>=2*dp){
+                            brightNess-=120;
+                            ToastUtils.show(MainActivity.this,"liangge");
+                        }
+                        else if (abs>=1*dp){
+                            ToastUtils.show(MainActivity.this,"yige");
+                            brightNess=brightNess-60;
+                        }
+                        if (brightNess<0){
+                            brightNess=0;
+                        }
+                        BrightNessUtils.setBrightNess(MainActivity.this,brightNess);
+
+
+                    }else{
+                        ToastUtils.show(MainActivity.this,"upup");
+                        if (abs>=4*dp){
+                            //四个
+                            brightNess+=240;
+                            ToastUtils.show(MainActivity.this,"sige");
+                        }else if (abs>=3*dp){
+                            brightNess+=180;
+                            ToastUtils.show(MainActivity.this,"sange");
+
+                        }else if (abs>=2*dp){
+                            brightNess+=120;
+                            ToastUtils.show(MainActivity.this,"liangge");
+                        }
+                        else if (abs>=1*dp){
+                            ToastUtils.show(MainActivity.this,"yige");
+                            brightNess=brightNess+60;
+                        }
+                        if (brightNess>=255){
+                            brightNess=255;
+                        }
+                        BrightNessUtils.setBrightNess(MainActivity.this,brightNess);
+
+                    }
+                }
+                if(event.getAction()==MotionEvent.ACTION_UP){
+                    oldLeftY=0;
+                }
+                return true;
+            }
+        });
+    }
+    private void initVolumeManager() {
+        right.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction()==MotionEvent.ACTION_DOWN){
+                    if (oldRightY==0){
+                        oldRightY=event.getRawY();
+                    }
+                }
+                if (event.getAction()==MotionEvent.ACTION_MOVE){
+                    float newRightY=event.getRawY();
+                    float degree = newRightY - oldRightY;
+                    float abs = Math.abs(degree);
+                    int maxVolume = SoundUtils.getMaxVolume(MainActivity.this);
+                    int bit=maxVolume/4;
+                    int currentVolume = SoundUtils.getCurrentVolume(MainActivity.this);
+
+
+                    if (newRightY - oldRightY>0){
+                        ToastUtils.show(MainActivity.this,"downdown");
+                        if (abs>=4*dp){
+                            //四个
+                            currentVolume-=4*bit;
+                            ToastUtils.show(MainActivity.this,"sige");
+                        }else if (abs>=3*dp){
+                            currentVolume-=3*bit;
+                            ToastUtils.show(MainActivity.this,"sange");
+
+                        }else if (abs>=2*dp){
+                            currentVolume-=2*bit;
+                            ToastUtils.show(MainActivity.this,"liangge");
+                        }
+                        else if (abs>=1*dp){
+                            currentVolume-=bit;
+                            ToastUtils.show(MainActivity.this,"yige");
+
+                        }
+                        if (currentVolume<0){
+                            currentVolume=0;
+                        }
+                        SoundUtils.setVolume(MainActivity.this,currentVolume);
+
+
+                    }else{
+                        ToastUtils.show(MainActivity.this,"upup");
+                        if (abs>=4*dp){
+                            //四个
+                            currentVolume+=4*bit;
+                            ToastUtils.show(MainActivity.this,"sige");
+                        }else if (abs>=3*dp){
+                            currentVolume+=3*bit;
+                            ToastUtils.show(MainActivity.this,"sange");
+
+                        }else if (abs>=2*dp){
+                            currentVolume+=2*bit;
+                            ToastUtils.show(MainActivity.this,"liangge");
+                        }
+                        else if (abs>=1*dp){
+                            currentVolume+=1*bit;
+                            ToastUtils.show(MainActivity.this,"yige");
+                        }
+                        if (currentVolume>=maxVolume){
+                            currentVolume=maxVolume;
+                        }
+                        SoundUtils.setVolume(MainActivity.this,currentVolume);
+
+                    }
+                }
+                if(event.getAction()==MotionEvent.ACTION_UP){
+                    oldRightY=0;
+                }
+                return true;
+            }
+        });
+
     }
 
-}
+            public enum PlayStatus{
+                STOP,PAUSE,START;
+            }
+            public void slient(View v){
+             SoundUtils.setVolume(MainActivity.this,0);
+            }
+
+    }
